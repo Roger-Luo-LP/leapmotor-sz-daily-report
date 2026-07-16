@@ -43,6 +43,17 @@
     display:flex; align-items:center; gap:8px;
   }
 
+  /* 门店明细：集团筛选条 */
+  .filter-bar { display:flex; align-items:center; gap:8px; margin:0 0 8px; flex-wrap:wrap; }
+  .filter-label { font-size:13px; font-weight:600; color:var(--text-gray); }
+  .filter-btn {
+    border:1px solid var(--leap-green); background:#fff; color:var(--leap-green-d);
+    font-size:12.5px; padding:4px 14px; border-radius:20px; cursor:pointer;
+    transition:all .15s ease;
+  }
+  .filter-btn:hover { background:#eaf6ef; }
+  .filter-btn.active { background:var(--leap-green); color:#fff; font-weight:700; }
+
   /* Table */
   .table-wrapper {
     background:#fff; border-radius:var(--radius); box-shadow:var(--shadow);
@@ -144,6 +155,13 @@
 
   <!-- 门店明细 -->
   <div class="sec-title">🏬 门店明细</div>
+  <div class="filter-bar">
+    <span class="filter-label">集团筛选：</span>
+    <button class="filter-btn active" data-group="全部">全部</button>
+    <button class="filter-btn" data-group="新易腾">新易腾</button>
+    <button class="filter-btn" data-group="标特">标特</button>
+    <button class="filter-btn" data-group="九兴">九兴</button>
+  </div>
   <div class="table-wrapper">
     <table id="detailTable"></table>
   </div>
@@ -320,6 +338,7 @@ const REPORT_DATA = {
   detail: [
     {store:"深圳体验中心杰鹏车城店",
     area:"深圳北（新易腾）",
+    group:"新易腾",
     flagship:false,
     lock:{
       d:2,
@@ -349,6 +368,7 @@ const REPORT_DATA = {
     },
     {store:"深圳体验中心龙华中心店",
     area:"深圳北（新易腾）",
+    group:"新易腾",
     flagship:false,
     lock:{
       d:0,
@@ -378,6 +398,7 @@ const REPORT_DATA = {
     },
     {store:"深圳零跑中心万国城旗舰店",
     area:"深圳北（新易腾）",
+    group:"新易腾",
     flagship:true,
     lock:{
       d:3,
@@ -407,6 +428,7 @@ const REPORT_DATA = {
     },
     {store:"深圳零跑中心光明车城店",
     area:"深圳北（新易腾）",
+    group:"新易腾",
     flagship:false,
     lock:{
       d:3,
@@ -436,6 +458,7 @@ const REPORT_DATA = {
     },
     {store:"深圳零跑中心宝运达汽车城店",
     area:"深圳北（新易腾）",
+    group:"新易腾",
     flagship:false,
     lock:{
       d:1,
@@ -465,6 +488,7 @@ const REPORT_DATA = {
     },
     {store:"深圳零跑中心远望车城店",
     area:"深圳北（新易腾）",
+    group:"新易腾",
     flagship:false,
     lock:{
       d:1,
@@ -494,6 +518,7 @@ const REPORT_DATA = {
     },
     {store:"深圳体验中心启创汽车城店",
     area:"九兴",
+    group:"九兴",
     flagship:false,
     lock:{
       d:0,
@@ -523,6 +548,7 @@ const REPORT_DATA = {
     },
     {store:"深圳体验中心福田瑞鹏达店",
     area:"标特",
+    group:"标特",
     flagship:false,
     lock:{
       d:2,
@@ -552,6 +578,7 @@ const REPORT_DATA = {
     },
     {store:"深圳体验中心锦龙大道店",
     area:"九兴",
+    group:"九兴",
     flagship:false,
     lock:{
       d:0,
@@ -581,6 +608,7 @@ const REPORT_DATA = {
     },
     {store:"深圳体验中心龙岗信义店",
     area:"九兴",
+    group:"九兴",
     flagship:false,
     lock:{
       d:1,
@@ -610,6 +638,7 @@ const REPORT_DATA = {
     },
     {store:"深圳零跑中心南山嘉进隆店",
     area:"标特",
+    group:"标特",
     flagship:false,
     lock:{
       d:4,
@@ -639,6 +668,7 @@ const REPORT_DATA = {
     },
     {store:"深圳零跑中心百世汽车城店",
     area:"九兴",
+    group:"九兴",
     flagship:false,
     lock:{
       d:4,
@@ -668,6 +698,7 @@ const REPORT_DATA = {
     },
     {store:"深圳零跑中心芙蓉路店",
     area:"标特",
+    group:"标特",
     flagship:false,
     lock:{
       d:2,
@@ -746,8 +777,10 @@ const EXTRA = [
   {f:"stock", h:"库存<br>深度",         yellow:true, show:true, sort:"stock"},
 ];
 
-// 门店明细排序状态
-const sortState = {key:null, dir:1}; // key=排序字段路径, dir:1升序 -1降序
+// 门店明细排序状态（默认：按锁单排名升序）
+const sortState = {key:"lock.rank", dir:1}; // key=排序字段路径, dir:1升序 -1降序
+// 门店明细集团筛选（全部 / 新易腾 / 标特 / 九兴）
+let filterGroup = "全部";
 function arrowFor(key){
   if(sortState.key!==key) return "⇅";
   return sortState.dir>0 ? "▲" : "▼";
@@ -759,7 +792,8 @@ function getVal(row,key){
   return row[seg][f];
 }
 function getSortedDetail(){
-  const rows = REPORT_DATA.detail.slice();
+  let rows = REPORT_DATA.detail.slice();
+  if(filterGroup !== "全部") rows = rows.filter(r => r.group === filterGroup);  // 先按集团筛选
   if(!sortState.key) return rows;
   const k=sortState.key, dir=sortState.dir;
   rows.sort((a,b)=>{
@@ -866,7 +900,7 @@ function dCell(v, hi){
   return `<td class="${cls}">${nf(v)}</td>`;
 }
 function buildDetailBody(rows){
-  const {hi, rank} = detailHighlights(rows);
+  const {hi, rank} = detailHighlights(REPORT_DATA.detail);  // 高亮口径始终基于全部门店
   let h="<tbody>";
   rows.forEach(r=>{
     const isNorth = r.area==="深圳北（新易腾）";
@@ -898,6 +932,16 @@ document.getElementById("detailTable").addEventListener("click", e=>{
   if(sortState.key===key) sortState.dir*=-1;            // 同列再点切换升降序
   else { sortState.key=key; sortState.dir = (key==="store")?1:-1; }
   render();
+});
+
+// 门店明细集团筛选
+document.querySelectorAll(".filter-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    filterGroup = btn.getAttribute("data-group");
+    document.querySelectorAll(".filter-btn").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    render();
+  });
 });
 render();
 </script>
