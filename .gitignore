@@ -1,0 +1,8 @@
+# 零跑汽车深圳小区日报 - GitHub Pages 仓库
+# 仅发布报表本身，不提交内部工作区数据
+.workbuddy/
+*.log
+_check.js
+_test.js
+_core.js
+__pycache__/

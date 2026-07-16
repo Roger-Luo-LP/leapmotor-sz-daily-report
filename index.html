@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>零跑汽车深圳小区日报</title>
+<style>
+  :root {
+    --leap-green: #00B050;
+    --leap-green-d: #009344;
+    --hdr-yellow: #FFFF00;
+    --cell-yellow: #FFFF99;
+    --text-dark: #1a1a1a;
+    --text-gray: #666;
+    --border: #cfcfcf;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --radius: 8px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#eef1f4; color:var(--text-dark); padding:14px; padding-bottom:40px;
+  }
+  .container { max-width:1700px; margin:0 auto; }
+
+  /* Header */
+  .report-header {
+    background:linear-gradient(135deg,var(--leap-green),var(--leap-green-d));
+    color:#fff; border-radius:var(--radius); padding:20px 26px; margin-bottom:16px;
+    box-shadow:var(--shadow); display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:10px;
+  }
+  .report-header h1 { font-size:23px; font-weight:700; letter-spacing:.5px; }
+  .report-header .sub { font-size:12.5px; opacity:.88; margin-top:4px; }
+  .hdr-right { text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+  .date-badge { background:rgba(255,255,255,.22); padding:6px 16px; border-radius:18px; font-size:14px; font-weight:600; }
+  .time-prog { font-size:12.5px; background:rgba(0,0,0,.15); padding:4px 12px; border-radius:14px; }
+
+  /* Section title */
+  .sec-title {
+    font-size:15px; font-weight:700; color:var(--leap-green-d);
+    margin:18px 0 8px; padding-left:10px; border-left:4px solid var(--leap-green);
+    display:flex; align-items:center; gap:8px;
+  }
+
+  /* Table */
+  .table-wrapper {
+    background:#fff; border-radius:var(--radius); box-shadow:var(--shadow);
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+  }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; min-width:1180px; }
+
+  thead th {
+    border:1px solid #7bbf95; color:#fff; font-weight:700; text-align:center;
+    vertical-align:middle; padding:6px 4px; line-height:1.25; background:var(--leap-green);
+  }
+  thead th.yellow { background:var(--leap-green); color:#fff; font-size:11px; }
+  thead th.grp { font-size:13px; padding:8px 4px; }
+  thead th.sub { font-size:11px; background:var(--leap-green); }
+
+  tbody td {
+    border:1px solid #e2e6ea; padding:5px 4px; text-align:center; vertical-align:middle;
+    font-variant-numeric:tabular-nums;
+  }
+  tbody td.name { text-align:left; padding-left:10px; font-weight:600; white-space:nowrap; }
+  .col-e { font-weight:700; } /* 月累锁单 加粗（底色调白） */
+  .name-north { font-weight:700; } /* 深圳北门店名（底色已删，保留加粗） */
+
+  /* summary rows emphasis */
+  tr.sum-total td { background:#d6efe0; font-weight:800; }
+  tr.sum-total td.col-e { background:#bfe6cf; }
+  tr.sum-area td { background:#eef8f2; font-weight:700; }
+  tr.sum-sub td { color:#555; }
+  tr.sum-sub td.name { padding-left:24px; font-weight:500; }
+  tr.sum-sub td.name::before { content:"└ "; color:#aaa; }
+
+  /* detail rows */
+  tbody tr:hover td { background:transparent; }
+  tr.flagship td.name { font-weight:800; }
+  /* 旗舰店后缀(★旗舰)已按需求移除，保留店名加粗 */
+
+  .pct { font-size:11.5px; }
+  .rank { font-weight:700; }
+  .rank-1 { color:#d32f2f; }          /* 第一名 红 */
+  .warn { color:#c62828; font-weight:700; }  /* 库存深度预警：仅红字，底色调白 */
+
+  /* 小区汇总：达成率 / 现车锁单占比(BCL) 低于“深圳”均值 → 浅红底红字 */
+  .below-avg { background:#ffebee !important; color:#d32f2f; font-weight:700; }
+  /* 门店明细：昨日净增/昨日交付/昨日批售 第一名绿字、0值红字 */
+  .d-max { color:#1b8a3a; font-weight:700; }
+  .d-zero { color:#d32f2f; font-weight:700; }
+  /* 门店明细：达成率 前三浅绿底深绿字、后三浅红底深红字 */
+  .pct-top { background:#e8f5e9; color:#2e7d32; font-weight:700; }
+  .pct-bottom { background:#ffebee; color:#c62828; font-weight:700; }
+
+  /* 排序按钮（仅门店明细表头） */
+  thead th.sortable { cursor:pointer; }
+  thead th.sortable:hover { background:var(--leap-green-d); }
+  .sort { font-size:10px; margin-left:3px; opacity:.7; }
+  thead th.sortable:hover .sort { opacity:1; }
+
+  /* Notes */
+  .notes { background:#fff; border-radius:var(--radius); padding:18px 22px; margin-top:16px; box-shadow:var(--shadow); }
+  .notes h3 { font-size:15px; color:var(--leap-green-d); margin-bottom:10px; }
+  .notes ul { list-style:none; }
+  .notes li { padding:6px 0; border-bottom:1px dashed #eee; font-size:13px; line-height:1.6; }
+  .notes li:last-child { border-bottom:none; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px; margin-right:6px; font-weight:600; }
+  .tag.red { background:#ffebee; color:#c62828; }
+  .tag.yel { background:#fff8e1; color:#f57f17; }
+  .tag.grn { background:#e8f5e9; color:#2e7d32; }
+
+  .legend { font-size:11.5px; color:var(--text-gray); margin:6px 2px 0; display:flex; gap:16px; flex-wrap:wrap; }
+  .legend span { display:inline-flex; align-items:center; gap:5px; }
+  .sw { width:13px; height:13px; border-radius:2px; display:inline-block; border:1px solid #ccc; }
+
+  @media (max-width:768px){
+    body{padding:8px;}
+    .report-header h1{font-size:18px;}
+    table{font-size:11px; min-width:1080px;}
+    thead th,tbody td{padding:4px 3px;}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="report-header">
+    <div>
+      <h1>🚗 零跑汽车 · 深圳小区日报</h1>
+      <div class="sub" id="updateTime">更新时间：--</div>
+    </div>
+    <div class="hdr-right">
+      <div class="date-badge" id="dateDisplay">--</div>
+      <div class="time-prog" id="timeProg">时间进度：--</div>
+    </div>
+  </div>
+
+  <!-- 小区汇总 -->
+  <div class="sec-title">📊 小区汇总</div>
+  <div class="table-wrapper">
+    <table id="summaryTable"></table>
+  </div>
+
+  <!-- 门店明细 -->
+  <div class="sec-title">🏬 门店明细</div>
+  <div class="table-wrapper">
+    <table id="detailTable"></table>
+  </div>
+
+  <div class="legend">
+    <span style="color:#1b8a3a">昨日净增/交付/批售 第一名（绿字）｜ 0值（红字）</span>
+    <span style="color:#2e7d32">达成率前三（浅绿底深绿字）</span>
+    <span style="color:#c62828">达成率后三（浅红底深红字）｜ 小区汇总达成率/BCL 低于深圳均值（浅红底红字）</span>
+    <span style="color:#c62828">库存深度预警（&gt;1.5 红字）｜ 点击表头排序 ▲▼</span>
+  </div>
+
+  <!-- 备注 -->
+  <div class="notes">
+    <h3>📋 今日重点 &amp; 待办</h3>
+    <ul id="notesList"></ul>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// 数据配置 — 每天只改这里；版式自动渲染
+// 说明：pct 类字段直接填写百分比数值（如 28.0 表示 28.0%）
+// ============================================================
+const REPORT_DATA = {
+  dateStr: "2026/07/15",
+  weekday: "周三",
+  updateTime: "2026-07-16 17:55",
+  timeProgress: 48.4,
+
+  summary: [
+    {name:"深圳",
+    level:"total",
+    lock:{
+      d:23,
+      tgt:1313,
+      mon:388,
+      pct:29.6,
+      area:null,
+    },
+    del:{
+      d:34,
+      tgt:1347,
+      mon:482,
+      pct:35.8,
+      area:null,
+    },
+    whl:{
+      d:37,
+      tgt:1209,
+      mon:472,
+      pct:39,
+      area:null,
+    },
+    lockNum:130,
+    curOrder:90,
+    bcl:69.2,
+    stock:1.03,
+    },
+    {name:"深圳北（新易腾）",
+    level:"area",
+    lock:{
+      d:10,
+      tgt:673,
+      mon:196,
+      pct:29.1,
+      area:50.52,
+    },
+    del:{
+      d:13,
+      tgt:709,
+      mon:220,
+      pct:31,
+      area:45.6,
+    },
+    whl:{
+      d:24,
+      tgt:626,
+      mon:270,
+      pct:43.1,
+      area:57.2,
+    },
+    lockNum:59,
+    curOrder:33,
+    bcl:55.9,
+    stock:1.14,
+    },
+    {name:"深圳南",
+    level:"area",
+    lock:{
+      d:13,
+      tgt:640,
+      mon:192,
+      pct:30,
+      area:49.48,
+    },
+    del:{
+      d:21,
+      tgt:638,
+      mon:262,
+      pct:41,
+      area:54.4,
+    },
+    whl:{
+      d:13,
+      tgt:582,
+      mon:202,
+      pct:34.7,
+      area:42.8,
+    },
+    lockNum:71,
+    curOrder:57,
+    bcl:80.3,
+    stock:0.91,
+    },
+    {name:"标特",
+    level:"sub",
+    lock:{
+      d:8,
+      tgt:336,
+      mon:100,
+      pct:29.8,
+      area:25.77,
+    },
+    del:{
+      d:10,
+      tgt:335,
+      mon:126,
+      pct:37.6,
+      area:26.1,
+    },
+    whl:{
+      d:8,
+      tgt:307,
+      mon:109,
+      pct:35.5,
+      area:23.1,
+    },
+    lockNum:42,
+    curOrder:39,
+    bcl:92.9,
+    stock:0.89,
+    },
+    {name:"九兴",
+    level:"sub",
+    lock:{
+      d:5,
+      tgt:304,
+      mon:92,
+      pct:30.3,
+      area:23.71,
+    },
+    del:{
+      d:11,
+      tgt:303,
+      mon:135,
+      pct:44.5,
+      area:28.0,
+    },
+    whl:{
+      d:5,
+      tgt:274,
+      mon:93,
+      pct:33.8,
+      area:19.7,
+    },
+    lockNum:29,
+    curOrder:18,
+    bcl:62.1,
+    stock:0.89,
+    },
+  ],
+
+  detail: [
+    {store:"深圳体验中心杰鹏车城店",
+    area:"深圳北（新易腾）",
+    flagship:false,
+    lock:{
+      d:2,
+      tgt:57,
+      mon:20,
+      pct:35.1,
+      rank:3,
+    },
+    del:{
+      d:2,
+      tgt:59,
+      mon:19,
+      pct:32.2,
+      rank:9,
+    },
+    whl:{
+      d:3,
+      tgt:58,
+      mon:26,
+      pct:44.2,
+      rank:4,
+    },
+    stock:1.15,
+    lockNum:9,
+    curOrder:6,
+    bcl:66.7,
+    },
+    {store:"深圳体验中心龙华中心店",
+    area:"深圳北（新易腾）",
+    flagship:false,
+    lock:{
+      d:0,
+      tgt:108,
+      mon:34,
+      pct:31.5,
+      rank:5,
+    },
+    del:{
+      d:2,
+      tgt:123,
+      mon:37,
+      pct:30,
+      rank:11,
+    },
+    whl:{
+      d:4,
+      tgt:131,
+      mon:34,
+      pct:25.8,
+      rank:12,
+    },
+    stock:1,
+    lockNum:10,
+    curOrder:8,
+    bcl:80,
+    },
+    {store:"深圳零跑中心万国城旗舰店",
+    area:"深圳北（新易腾）",
+    flagship:true,
+    lock:{
+      d:3,
+      tgt:80,
+      mon:36,
+      pct:45,
+      rank:1,
+    },
+    del:{
+      d:4,
+      tgt:74,
+      mon:39,
+      pct:52.3,
+      rank:1,
+    },
+    whl:{
+      d:5,
+      tgt:47,
+      mon:37,
+      pct:77.1,
+      rank:1,
+    },
+    stock:1.02,
+    lockNum:9,
+    curOrder:5,
+    bcl:55.6,
+    },
+    {store:"深圳零跑中心光明车城店",
+    area:"深圳北（新易腾）",
+    flagship:false,
+    lock:{
+      d:3,
+      tgt:140,
+      mon:39,
+      pct:27.9,
+      rank:6,
+    },
+    del:{
+      d:4,
+      tgt:148,
+      mon:50,
+      pct:33.8,
+      rank:8,
+    },
+    whl:{
+      d:3,
+      tgt:123,
+      mon:51,
+      pct:41.4,
+      rank:5,
+    },
+    stock:0.99,
+    lockNum:13,
+    curOrder:4,
+    bcl:30.8,
+    },
+    {store:"深圳零跑中心宝运达汽车城店",
+    area:"深圳北（新易腾）",
+    flagship:false,
+    lock:{
+      d:1,
+      tgt:148,
+      mon:29,
+      pct:19.6,
+      rank:11,
+    },
+    del:{
+      d:0,
+      tgt:159,
+      mon:36,
+      pct:22.6,
+      rank:13,
+    },
+    whl:{
+      d:5,
+      tgt:139,
+      mon:50,
+      pct:35.8,
+      rank:8,
+    },
+    stock:1.15,
+    lockNum:6,
+    curOrder:5,
+    bcl:83.3,
+    },
+    {store:"深圳零跑中心远望车城店",
+    area:"深圳北（新易腾）",
+    flagship:false,
+    lock:{
+      d:1,
+      tgt:140,
+      mon:38,
+      pct:27.1,
+      rank:8,
+    },
+    del:{
+      d:1,
+      tgt:144,
+      mon:39,
+      pct:26.9,
+      rank:12,
+    },
+    whl:{
+      d:4,
+      tgt:125,
+      mon:72,
+      pct:57.4,
+      rank:2,
+    },
+    stock:1.51,
+    lockNum:12,
+    curOrder:5,
+    bcl:41.7,
+    },
+    {store:"深圳体验中心启创汽车城店",
+    area:"九兴",
+    flagship:false,
+    lock:{
+      d:0,
+      tgt:8,
+      mon:1,
+      pct:12.5,
+      rank:13,
+    },
+    del:{
+      d:1,
+      tgt:3,
+      mon:1,
+      pct:32.2,
+      rank:10,
+    },
+    whl:{
+      d:0,
+      tgt:5,
+      mon:1,
+      pct:18.3,
+      rank:13,
+    },
+    stock:1.87,
+    lockNum:null,
+    curOrder:null,
+    bcl:null,
+    },
+    {store:"深圳体验中心福田瑞鹏达店",
+    area:"标特",
+    flagship:false,
+    lock:{
+      d:2,
+      tgt:91,
+      mon:22,
+      pct:24.2,
+      rank:10,
+    },
+    del:{
+      d:3,
+      tgt:88,
+      mon:32,
+      pct:36.4,
+      rank:7,
+    },
+    whl:{
+      d:2,
+      tgt:61,
+      mon:27,
+      pct:44.2,
+      rank:3,
+    },
+    stock:1.19,
+    lockNum:8,
+    curOrder:7,
+    bcl:87.5,
+    },
+    {store:"深圳体验中心锦龙大道店",
+    area:"九兴",
+    flagship:false,
+    lock:{
+      d:0,
+      tgt:65,
+      mon:11,
+      pct:16.9,
+      rank:12,
+    },
+    del:{
+      d:1,
+      tgt:65,
+      mon:27,
+      pct:41.4,
+      rank:3,
+    },
+    whl:{
+      d:1,
+      tgt:56,
+      mon:17,
+      pct:30,
+      rank:10,
+    },
+    stock:1.43,
+    lockNum:3,
+    curOrder:3,
+    bcl:100,
+    },
+    {store:"深圳体验中心龙岗信义店",
+    area:"九兴",
+    flagship:false,
+    lock:{
+      d:1,
+      tgt:86,
+      mon:23,
+      pct:26.7,
+      rank:9,
+    },
+    del:{
+      d:4,
+      tgt:81,
+      mon:30,
+      pct:36.7,
+      rank:6,
+    },
+    whl:{
+      d:3,
+      tgt:76,
+      mon:23,
+      pct:30.1,
+      rank:9,
+    },
+    stock:0.85,
+    lockNum:9,
+    curOrder:6,
+    bcl:66.7,
+    },
+    {store:"深圳零跑中心南山嘉进隆店",
+    area:"标特",
+    flagship:false,
+    lock:{
+      d:4,
+      tgt:157,
+      mon:54,
+      pct:34.4,
+      rank:4,
+    },
+    del:{
+      d:1,
+      tgt:159,
+      mon:61,
+      pct:38.3,
+      rank:4,
+    },
+    whl:{
+      d:5,
+      tgt:161,
+      mon:58,
+      pct:35.9,
+      rank:7,
+    },
+    stock:0.81,
+    lockNum:25,
+    curOrder:23,
+    bcl:92,
+    },
+    {store:"深圳零跑中心百世汽车城店",
+    area:"九兴",
+    flagship:false,
+    lock:{
+      d:4,
+      tgt:145,
+      mon:57,
+      pct:39.3,
+      rank:2,
+    },
+    del:{
+      d:5,
+      tgt:153,
+      mon:77,
+      pct:50.3,
+      rank:2,
+    },
+    whl:{
+      d:1,
+      tgt:136,
+      mon:52,
+      pct:38.2,
+      rank:6,
+    },
+    stock:0.7,
+    lockNum:17,
+    curOrder:9,
+    bcl:52.9,
+    },
+    {store:"深圳零跑中心芙蓉路店",
+    area:"标特",
+    flagship:false,
+    lock:{
+      d:2,
+      tgt:88,
+      mon:24,
+      pct:27.3,
+      rank:7,
+    },
+    del:{
+      d:6,
+      tgt:88,
+      mon:33,
+      pct:37.5,
+      rank:5,
+    },
+    whl:{
+      d:1,
+      tgt:85,
+      mon:24,
+      pct:28.2,
+      rank:11,
+    },
+    stock:0.72,
+    lockNum:9,
+    curOrder:9,
+    bcl:100,
+    },
+  ],
+
+  notes: [
+    {tag:"grn", text:"【标杆】万国城旗舰店锁单达成率45.0%、交付52.3%、批售77.1%，三项均全区第一，建议总结打法推广"},
+    {tag:"red", text:"【预警】启创汽车城店近乎挂零，库存深度1.87偏高，需专项跟进"},
+    {tag:"yel", text:"深圳北（新易腾）小区锁单占比50.5%领跑；远望车城店批售达成57.4%表现亮眼"},
+    {tag:"", text:"全市月累锁单 388 / 目标 1313（29.6%），时间进度 48.4%，进度落后需下半月加速冲刺"},
+    {tag:"", text:"深圳南小区（贾迪赫团队）交付达成率41.0%、批售34.7%，交付节奏优于深圳北的31.0%"},
+  ],
+};
+
+// ============================================================
+// 渲染引擎（无需修改）
+// ============================================================
+const pf = (v)=> v===null||v===undefined ? "-" : (v.toFixed(1)+"%");
+const nf = (v)=> v===null||v===undefined ? "-" : v;
+
+function render(){
+  const d=REPORT_DATA;
+  document.getElementById("dateDisplay").textContent =
+    d.dateStr.replace(/\//g,(m,i)=>i===4?"年":"月")+"日（"+d.weekday+"）";
+  document.getElementById("updateTime").textContent = "更新时间："+d.updateTime;
+  document.getElementById("timeProg").textContent = "时间进度："+d.timeProgress.toFixed(1)+"%";
+
+  document.getElementById("summaryTable").innerHTML = buildHead("小区占比", false) + buildSummaryBody(d.summary);
+  document.getElementById("detailTable").innerHTML  = buildHead("排名", true) + buildDetailBody(getSortedDetail());
+
+  document.getElementById("notesList").innerHTML = d.notes.map(n=>{
+    const t = n.tag ? `<span class="tag ${n.tag}">${n.tag==="red"?"预警":n.tag==="yel"?"关注":"标杆"}</span>` : "";
+    return `<li>${t}${n.text}</li>`;
+  }).join("");
+}
+
+// 列显示配置：数据与口径保持不变，仅控制"显示/隐藏"（隐藏列的数据仍照常更新）
+// 交付/批售默认隐藏「目标」「月累」；右侧默认隐藏「锁单数」「现车订单」
+// sort: 该列排序键（仅门店明细表头可点击排序，整行数据联动重排）
+const SECTIONS = [
+  {key:"lock", label:"锁单", cols:[
+    {f:"d",h:"昨日净增",sort:"lock.d"},{f:"tgt",h:"净增目标",sort:"lock.tgt"},{f:"mon",h:"月累锁单",sort:"lock.mon"},{f:"pct",h:"达成率",sort:"lock.pct"},{f:"rank",h:"__RANK__",sort:"lock.rank"}]},
+  {key:"del",  label:"交付", cols:[
+    {f:"d",h:"昨日交付",sort:"del.d"},{f:"pct",h:"达成率",sort:"del.pct"},{f:"rank",h:"__RANK__",sort:"del.rank"}]},
+  {key:"whl",  label:"批售", cols:[
+    {f:"d",h:"昨日批售",sort:"whl.d"},{f:"pct",h:"达成率",sort:"whl.pct"},{f:"rank",h:"__RANK__",sort:"whl.rank"}]},
+];
+const EXTRA = [
+  {f:"lockNum",  h:"锁单数", show:false, sort:"lockNum"},
+  {f:"curOrder", h:"现车订单", show:false, sort:"curOrder"},
+  {f:"bcl",  h:"现车锁单<br>占比(BCL)", yellow:true, show:true, sort:"bcl"},
+  {f:"stock", h:"库存<br>深度",         yellow:true, show:true, sort:"stock"},
+];
+
+// 门店明细排序状态
+const sortState = {key:null, dir:1}; // key=排序字段路径, dir:1升序 -1降序
+function arrowFor(key){
+  if(sortState.key!==key) return "⇅";
+  return sortState.dir>0 ? "▲" : "▼";
+}
+function getVal(row,key){
+  if(key==="store") return row.store;
+  if(["bcl","stock","lockNum","curOrder"].includes(key)) return row[key];
+  const [seg,f]=key.split(".");
+  return row[seg][f];
+}
+function getSortedDetail(){
+  const rows = REPORT_DATA.detail.slice();
+  if(!sortState.key) return rows;
+  const k=sortState.key, dir=sortState.dir;
+  rows.sort((a,b)=>{
+    let va=getVal(a,k), vb=getVal(b,k);
+    if(va===null||va===undefined) return 1;   // 空值排末尾
+    if(vb===null||vb===undefined) return -1;
+    if(typeof va==="string") return va.localeCompare(vb,"zh")*dir;
+    return (va-vb)*dir;
+  });
+  return rows;
+}
+
+function buildHead(rankLabel, sortable){
+  let h = "<thead><tr>";
+  const storeDs = sortable ? ` data-sort="store"` : "";
+  const storeCls = "grp"+(sortable?" sortable":"");
+  h += `<th rowspan="2" class="${storeCls}" style="min-width:200px;"${storeDs}>门店${sortable?`<span class="sort">${arrowFor("store")}</span>`:""}</th>`;
+  SECTIONS.forEach(s=> h += `<th colspan="${s.cols.length}" class="grp">${s.label}</th>`);
+  EXTRA.forEach(e=>{ if(e.show){
+    const ds = sortable&&e.sort ? ` data-sort="${e.sort}"` : "";
+    const cls = "grp"+(e.yellow?" yellow":"")+(sortable&&e.sort?" sortable":"");
+    const a = sortable&&e.sort ? `<span class="sort">${arrowFor(e.sort)}</span>` : "";
+    h += `<th rowspan="2" class="${cls}"${ds}>${e.h}${a}</th>`;
+  }});
+  h += "</tr><tr>";
+  SECTIONS.forEach(s=> s.cols.forEach(c=>{
+    const ds = sortable&&c.sort ? ` data-sort="${c.sort}"` : "";
+    const cls = "sub"+(sortable&&c.sort?" sortable":"");
+    const a = sortable&&c.sort ? `<span class="sort">${arrowFor(c.sort)}</span>` : "";
+    h += `<th class="${cls}"${ds}>${c.h==="__RANK__"?rankLabel:c.h}${a}</th>`;
+  }));
+  h += "</tr></thead>";
+  return h;
+}
+
+function fieldCell(f, s, rankIsArea){
+  if(f==="d")   return `<td>${nf(s.d)}</td>`;
+  if(f==="tgt") return `<td>${nf(s.tgt)}</td>`;
+  if(f==="mon") return `<td class="col-e">${nf(s.mon)}</td>`;
+  if(f==="rank")
+    return rankIsArea
+      ? `<td class="pct">${s.area===null?"":pf(s.area)}</td>`
+      : `<td class="rank${s.rank===1?' rank-1':''}">${nf(s.rank)}</td>`;
+  return "";
+}
+function extraCell(e, r){
+  if(e.f==="lockNum")  return `<td>${nf(r.lockNum)}</td>`;
+  if(e.f==="curOrder") return `<td>${nf(r.curOrder)}</td>`;
+  if(e.f==="bcl")      return `<td class="pct">${pf(r.bcl)}</td>`;
+  if(e.f==="stock")    return `<td class="${r.stock!==null&&r.stock>1.5?'warn':''}">${r.stock===null?"-":r.stock.toFixed(2)}</td>`;
+  return "";
+}
+
+// 小区汇总：达成率 / 现车锁单占比(BCL) 低于“深圳”均值 → 浅红底红字
+function buildSummaryBody(rows){
+  const total = rows.find(r=>r.level==="total");
+  const bench = total ? {lock:total.lock.pct, del:total.del.pct, whl:total.whl.pct, bcl:total.bcl}
+                      : {lock:null, del:null, whl:null, bcl:null};
+  let h="<tbody>";
+  rows.forEach(r=>{
+    const cls = r.level==="total"?"sum-total":r.level==="area"?"sum-area":"sum-sub";
+    h+=`<tr class="${cls}">`;
+    h+=`<td class="name">${r.name}</td>`;
+    SECTIONS.forEach(s=> s.cols.forEach(c=>{
+      if(c.f==="pct"){
+        const below = bench[s.key]!==null && r[s.key].pct!==null && r[s.key].pct < bench[s.key];
+        h+=`<td class="pct${below?' below-avg':''}">${pf(r[s.key].pct)}</td>`;
+      } else {
+        h+=fieldCell(c.f, r[s.key], true);
+      }
+    }));
+    EXTRA.forEach(e=>{ if(!e.show) return;
+      if(e.f==="bcl"){
+        const below = bench.bcl!==null && r.bcl!==null && r.bcl < bench.bcl;
+        h+=`<td class="pct${below?' below-avg':''}">${pf(r.bcl)}</td>`;
+      } else {
+        h+=extraCell(e, r);
+      }
+    });
+    h+="</tr>";
+  });
+  return h+"</tbody>";
+}
+
+// 门店明细高亮：
+//  · 昨日净增/昨日交付/昨日批售：第一名绿字、0值红字
+//  · 达成率：前三浅绿底深绿字、后三浅红底深红字
+function detailHighlights(rows){
+  const hi={}, rank={};
+  ["lock","del","whl"].forEach(k=>{
+    let max=-Infinity; const zeros=new Set();
+    rows.forEach(r=>{ const v=r[k].d; if(v===0) zeros.add(r.store); if(v>max) max=v; });
+    hi[k]={max, zeros};
+    const sorted=[...rows].sort((a,b)=>b[k].pct - a[k].pct);
+    rank[k]={ top:new Set(sorted.slice(0,3).map(r=>r.store)),
+              bottom:new Set(sorted.slice(-3).map(r=>r.store)) };
+  });
+  return {hi, rank};
+}
+function dCell(v, hi){
+  let cls="";
+  if(v===0) cls="d-zero";
+  else if(v===hi.max && hi.max>0) cls="d-max";
+  return `<td class="${cls}">${nf(v)}</td>`;
+}
+function buildDetailBody(rows){
+  const {hi, rank} = detailHighlights(rows);
+  let h="<tbody>";
+  rows.forEach(r=>{
+    const isNorth = r.area==="深圳北（新易腾）";
+    h+=`<tr class="${r.flagship?'flagship':''}">`;
+    h+=`<td class="name${isNorth?' name-north':''}">${r.store}</td>`;
+    SECTIONS.forEach(s=> s.cols.forEach(c=>{
+      if(c.f==="d"){
+        h+=dCell(r[s.key].d, hi[s.key]);
+      } else if(c.f==="pct"){
+        let cls="pct";
+        if(rank[s.key].top.has(r.store)) cls+=" pct-top";
+        else if(rank[s.key].bottom.has(r.store)) cls+=" pct-bottom";
+        h+=`<td class="${cls}">${pf(r[s.key].pct)}</td>`;
+      } else {
+        h+=fieldCell(c.f, r[s.key], false);
+      }
+    }));
+    EXTRA.forEach(e=>{ if(e.show) h+=extraCell(e, r); });
+    h+="</tr>";
+  });
+  return h+"</tbody>";
+}
+
+// 门店明细表头点击排序（事件委托，重渲染不丢失）
+document.getElementById("detailTable").addEventListener("click", e=>{
+  const el = e.target.closest("[data-sort]");
+  if(!el) return;
+  const key = el.getAttribute("data-sort");
+  if(sortState.key===key) sortState.dir*=-1;            // 同列再点切换升降序
+  else { sortState.key=key; sortState.dir = (key==="store")?1:-1; }
+  render();
+});
+render();
+</script>
+</body>
+</html>
