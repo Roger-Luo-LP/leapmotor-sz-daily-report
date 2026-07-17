@@ -90,6 +90,21 @@
   tr.flagship td.name { font-weight:800; }
   /* 旗舰店后缀(★旗舰)已按需求移除，保留店名加粗 */
 
+  /* 门店明细：固定“门店”列（横向滚动时始终可见） */
+  #detailTable thead th:first-child,
+  #detailTable tbody td.name {
+    position:sticky; left:0; z-index:2; background:#fff;
+  }
+  #detailTable thead th:first-child { background:var(--leap-green); z-index:3; }
+  #detailTable thead th:first-child,
+  #detailTable tbody td.name { border-right:2px solid #2e7d32; }
+
+  /* 门店明细汇总行 */
+  tr.detail-total td { background:#d6efe0; font-weight:800; }
+  #detailTable tbody tr.detail-total td.name { background:#cde9d8; }
+  tr.detail-total td.col-e { background:#bfe6cf; }
+  tr.detail-total td.pct { color:#1b5e20; }
+
   .pct { font-size:11.5px; }
   .rank { font-weight:700; }
   .rank-1 { color:#d32f2f; }          /* 第一名 红 */
@@ -926,7 +941,44 @@ function buildDetailBody(rows){
     EXTRA.forEach(e=>{ if(e.show) h+=extraCell(e, r); });
     h+="</tr>";
   });
+  h += buildDetailTotal(rows);
   return h+"</tbody>";
+}
+
+// 门店明细汇总行：对当前显示（已按集团筛选）的门店逐列求和
+// 达成率 = 月累/目标*100；BCL = 现车订单/锁单数*100；库存深度 = 各店月累交付加权平均
+function buildDetailTotal(rows){
+  const sum=(arr,fn)=>arr.reduce((a,r)=>{const v=fn(r); return (v===null||v===undefined)?a:a+v;},0);
+  const agg=seg=>({ d:sum(rows,r=>r[seg].d), tgt:sum(rows,r=>r[seg].tgt), mon:sum(rows,r=>r[seg].mon) });
+  const L=agg("lock"), D=agg("del"), W=agg("whl");
+  L.pct=L.tgt? L.mon/L.tgt*100:0; D.pct=D.tgt? D.mon/D.tgt*100:0; W.pct=W.tgt? W.mon/W.tgt*100:0;
+  const lockNum=sum(rows,r=>r.lockNum), curOrder=sum(rows,r=>r.curOrder);
+  const bcl = lockNum? curOrder/lockNum*100 : null;
+  let num=0, den=0;
+  rows.forEach(r=>{ if(r.stock!==null && r.del.mon){ num+=r.stock*r.del.mon; den+=r.del.mon; } });
+  const stock = den? num/den : null;
+
+  const cell = (v)=> v===null||v===undefined ? "-" : v;
+  let h=`<tr class="detail-total">`;
+  h+=`<td class="name">汇总</td>`;
+  SECTIONS.forEach(s=>{
+    const seg = s.key==="lock"?L : s.key==="del"?D : W;
+    s.cols.forEach(c=>{
+      if(c.f==="d")         h+=`<td>${cell(seg.d)}</td>`;
+      else if(c.f==="tgt")  h+=`<td>${cell(seg.tgt)}</td>`;
+      else if(c.f==="mon")  h+=`<td class="col-e">${cell(seg.mon)}</td>`;
+      else if(c.f==="rank") h+=`<td class="rank">汇总</td>`;
+      else if(c.f==="pct")  h+=`<td class="pct">${seg.pct.toFixed(1)}%</td>`;
+    });
+  });
+  EXTRA.forEach(e=>{ if(!e.show) return;
+    if(e.f==="lockNum")       h+=`<td>${cell(lockNum)}</td>`;
+    else if(e.f==="curOrder") h+=`<td>${cell(curOrder)}</td>`;
+    else if(e.f==="bcl")      h+=`<td class="pct">${bcl===null?"-":bcl.toFixed(1)+"%"}</td>`;
+    else if(e.f==="stock")    h+=`<td class="${stock!==null&&stock>1.5?'warn':''}">${stock===null?"-":stock.toFixed(2)}</td>`;
+  });
+  h+="</tr>";
+  return h;
 }
 
 // 门店明细表头点击排序（事件委托，重渲染不丢失）
