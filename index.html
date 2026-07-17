@@ -99,6 +99,20 @@
   #detailTable thead th:first-child,
   #detailTable tbody td.name { border-right:2px solid #2e7d32; }
 
+  /* 小区汇总：固定首列（小区/门店名称），横向滚动时始终可见 */
+  #summaryTable thead th:first-child,
+  #summaryTable tbody td.name {
+    position:sticky; left:0; z-index:2;
+  }
+  #summaryTable thead th:first-child { background:var(--leap-green); z-index:3; }
+  #summaryTable thead th:first-child,
+  #summaryTable tbody td.name { border-right:2px solid #2e7d32; }
+  /* 首列底色跟随各行（保证横向滚动时遮住下方内容） */
+  #summaryTable tbody td.name      { background:#fff; }
+  #summaryTable tr.sum-total td.name { background:#d6efe0; }
+  #summaryTable tr.sum-area  td.name { background:#eef8f2; }
+  #summaryTable tr.sum-sub   td.name { background:#fff; }
+
   /* 门店明细汇总行 */
   tr.detail-total td { background:#d6efe0; font-weight:800; }
   #detailTable tbody tr.detail-total td.name { background:#cde9d8; }
@@ -140,9 +154,9 @@
   .legend span { display:inline-flex; align-items:center; gap:5px; }
   .sw { width:13px; height:13px; border-radius:2px; display:inline-block; border:1px solid #ccc; }
 
-  /* 一键导出图片按钮（右上角固定，始终可见） */
+  /* 一键导出图片按钮（右下角固定，悬浮不遮挡内容） */
   #exportBtn {
-    position:fixed; top:14px; right:14px; z-index:9999;
+    position:fixed; bottom:18px; right:14px; z-index:9999;
     background:linear-gradient(135deg,var(--leap-green),var(--leap-green-d));
     color:#fff; border:none; border-radius:24px;
     padding:9px 18px; font-size:13.5px; font-weight:700; cursor:pointer;
@@ -155,7 +169,7 @@
   #exportBtn:disabled { opacity:.7; cursor:default; transform:none; box-shadow:0 4px 14px rgba(0,176,80,.4); }
 
   @media (max-width:768px){
-    #exportBtn{ top:8px; right:8px; padding:7px 12px; font-size:12px; }
+    #exportBtn{ bottom:8px; right:8px; padding:7px 12px; font-size:12px; }
     body{padding:8px;}
     .report-header h1{font-size:18px;}
     table{font-size:11px; min-width:1080px;}
