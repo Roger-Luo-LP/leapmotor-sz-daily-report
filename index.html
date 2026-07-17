@@ -140,7 +140,22 @@
   .legend span { display:inline-flex; align-items:center; gap:5px; }
   .sw { width:13px; height:13px; border-radius:2px; display:inline-block; border:1px solid #ccc; }
 
+  /* 一键导出图片按钮（右上角固定，始终可见） */
+  #exportBtn {
+    position:fixed; top:14px; right:14px; z-index:9999;
+    background:linear-gradient(135deg,var(--leap-green),var(--leap-green-d));
+    color:#fff; border:none; border-radius:24px;
+    padding:9px 18px; font-size:13.5px; font-weight:700; cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,176,80,.4);
+    display:flex; align-items:center; gap:6px; white-space:nowrap;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  #exportBtn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,176,80,.5); }
+  #exportBtn:active { transform:translateY(0); }
+  #exportBtn:disabled { opacity:.7; cursor:default; transform:none; box-shadow:0 4px 14px rgba(0,176,80,.4); }
+
   @media (max-width:768px){
+    #exportBtn{ top:8px; right:8px; padding:7px 12px; font-size:12px; }
     body{padding:8px;}
     .report-header h1{font-size:18px;}
     table{font-size:11px; min-width:1080px;}
@@ -196,6 +211,9 @@
 
 </div>
 
+<button id="exportBtn" title="将当前报表导出为高清图片（PNG）">一键导出图片</button>
+
+<script src="html2canvas.min.js"></script>
 <script>
 // ============================================================
 // 数据配置 — 每天只改这里；版式自动渲染
@@ -1000,6 +1018,40 @@ document.querySelectorAll(".filter-btn").forEach(btn=>{
     render();
   });
 });
+
+// 一键导出网页图片（右上角按钮）
+document.getElementById("exportBtn").addEventListener("click", async ()=>{
+  const btn = document.getElementById("exportBtn");
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = "生成中…";
+  try {
+    // 临时取消表格横向滚动裁剪，确保整表（含滚动部分）完整入图
+    const wrappers = [...document.querySelectorAll(".table-wrapper")];
+    const prev = wrappers.map(w=>w.style.overflow);
+    wrappers.forEach(w=>w.style.overflow = "visible");
+    const target = document.querySelector(".container");
+    const canvas = await html2canvas(target, {
+      scale: 2,
+      backgroundColor: "#eef1f4",
+      useCORS: true,
+      logging: false,
+      windowWidth: target.scrollWidth
+    });
+    prev.forEach((o,i)=>wrappers[i].style.overflow = o);   // 还原
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    const ds = REPORT_DATA.dateStr.replace(/\//g, "-");
+    a.download = `零跑深圳小区日报_${ds}.png`;
+    a.href = url; document.body.appendChild(a); a.click(); a.remove();
+  } catch(e) {
+    alert("导出失败：" + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
+});
+
 render();
 </script>
 </body>
