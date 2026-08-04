@@ -149,6 +149,7 @@
   .tag.red { background:#ffebee; color:#c62828; }
   .tag.yel { background:#fff8e1; color:#f57f17; }
   .tag.grn { background:#e8f5e9; color:#2e7d32; }
+  .tag.low { background:#fce4ec; color:#ad1457; }
 
   .legend { font-size:11.5px; color:var(--text-gray); margin:6px 2px 0; display:flex; gap:16px; flex-wrap:wrap; }
   .legend span { display:inline-flex; align-items:center; gap:5px; }
@@ -782,6 +783,8 @@ const REPORT_DATA = {
   notes: [
     {tag:"grn",
     text:"【标杆】锁单达成率深圳体验中心龙岗信义店14.3%、交付达成率深圳体验中心龙华中心店8.5%、批售达成率深圳体验中心福田瑞鹏达店7.8%，各维度领先，建议总结打法推广",},
+    {tag:"low",
+    text:"【落后】锁单/交付/批售达成率均垫底：深圳体验中心启创汽车城店（锁单0.0%/交付0.0%/批售0.0%），需重点帮扶提升",},
     {tag:"red",
     text:"【预警】深圳体验中心龙华中心店、深圳体验中心启创汽车城店、深圳零跑中心芙蓉路店 昨日锁单挂零；深圳零跑中心宝运达汽车城店库存深度2.03偏高，需专项跟进",},
     {tag:"yel",
@@ -810,7 +813,7 @@ function render(){
   document.getElementById("detailTable").innerHTML  = buildHead("排名", true) + buildDetailBody(getSortedDetail());
 
   document.getElementById("notesList").innerHTML = d.notes.map(n=>{
-    const t = n.tag ? `<span class="tag ${n.tag}">${n.tag==="red"?"预警":n.tag==="yel"?"关注":"标杆"}</span>` : "";
+    const t = n.tag ? `<span class="tag ${n.tag}">${n.tag==="red"?"预警":n.tag==="yel"?"关注":n.tag==="low"?"落后":"标杆"}</span>` : "";
     return `<li>${t}${n.text}</li>`;
   }).join("");
 }
