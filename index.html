@@ -81,6 +81,8 @@
   tr.sum-total td { background:#d6efe0; font-weight:800; }
   tr.sum-total td.col-e { background:#bfe6cf; }
   tr.sum-area td { background:#eef8f2; font-weight:700; }
+  tr.sum-region td { background:#e3f0ff; font-weight:800; border-top:2px solid #9dc3ff; }
+  tr.sum-region td.col-e { background:#cfe4ff; }
   tr.sum-sub td { color:#555; }
   tr.sum-sub td.name { padding-left:24px; font-weight:500; }
   tr.sum-sub td.name::before { content:"└ "; color:#aaa; }
@@ -111,6 +113,7 @@
   #summaryTable tbody td.name      { background:#fff; }
   #summaryTable tr.sum-total td.name { background:#d6efe0; }
   #summaryTable tr.sum-area  td.name { background:#eef8f2; }
+  #summaryTable tr.sum-region td.name { background:#e3f0ff; }
   #summaryTable tr.sum-sub   td.name { background:#fff; }
 
   /* 门店明细汇总行 */
@@ -241,10 +244,38 @@
 const REPORT_DATA = {
   dateStr: "2026/08/06",
   weekday: "周四",
-  updateTime: "2026-08-07 09:45",
+  updateTime: "2026-08-07 10:07",
   timeProgress: 19.4,
 
   summary: [
+    {name:"华南大区",
+    level:"region",
+    lock:{
+      d:201,
+      tgt:11254,
+      mon:1315,
+      pct:11.7,
+      area:null,
+    },
+    del:{
+      d:257,
+      tgt:10148,
+      mon:1244,
+      pct:12.3,
+      area:null,
+    },
+    whl:{
+      d:0,
+      tgt:10369,
+      mon:867,
+      pct:8.4,
+      area:null,
+    },
+    lockNum:null,
+    curOrder:null,
+    bcl:null,
+    stock:1.25,
+    },
     {name:"深圳",
     level:"total",
     lock:{
@@ -790,7 +821,7 @@ const REPORT_DATA = {
     {tag:"yel",
     text:"深圳北（新易腾）小区锁单占比56.8%领跑；深圳南（贾迪赫团队）交付达成率9.4%、批售8.7%",},
     {tag:"",
-    text:"全市月累锁单 155 / 目标 1313（11.8%），时间进度 19.4%，进度落后需下半月加速冲刺",},
+    text:"深圳月累锁单 155 / 目标 1318（11.8%），时间进度 19.4%，进度落后需下半月加速冲刺",},
     {tag:"",
     text:"标特库存深度1.2、九兴1.19；深圳北交付13.9% vs 深圳南9.4%",},
   ],
@@ -894,7 +925,7 @@ function fieldCell(f, s, rankIsArea){
   if(f==="mon") return `<td class="col-e">${nf(s.mon)}</td>`;
   if(f==="rank")
     return rankIsArea
-      ? `<td class="pct">${s.area===null?"":pf(s.area)}</td>`
+      ? `<td class="pct">${s.area===null?"—":pf(s.area)}</td>`
       : `<td class="rank${s.rank===1?' rank-1':''}">${nf(s.rank)}</td>`;
   return "";
 }
@@ -913,12 +944,12 @@ function buildSummaryBody(rows){
                       : {lock:null, del:null, whl:null, bcl:null};
   let h="<tbody>";
   rows.forEach(r=>{
-    const cls = r.level==="total"?"sum-total":r.level==="area"?"sum-area":"sum-sub";
+    const cls = r.level==="total"?"sum-total":r.level==="area"?"sum-area":r.level==="region"?"sum-region":"sum-sub";
     h+=`<tr class="${cls}">`;
     h+=`<td class="name">${r.name}</td>`;
     SECTIONS.forEach(s=> s.cols.forEach(c=>{
       if(c.f==="pct"){
-        const below = bench[s.key]!==null && r[s.key].pct!==null && r[s.key].pct < bench[s.key];
+        const below = r.level!=="region" && bench[s.key]!==null && r[s.key].pct!==null && r[s.key].pct < bench[s.key];
         h+=`<td class="pct${below?' below-avg':''}">${pf(r[s.key].pct)}</td>`;
       } else {
         h+=fieldCell(c.f, r[s.key], true);
@@ -926,7 +957,7 @@ function buildSummaryBody(rows){
     }));
     EXTRA.forEach(e=>{ if(!e.show) return;
       if(e.f==="bcl"){
-        const below = bench.bcl!==null && r.bcl!==null && r.bcl < bench.bcl;
+        const below = r.level!=="region" && bench.bcl!==null && r.bcl!==null && r.bcl < bench.bcl;
         h+=`<td class="pct${below?' below-avg':''}">${pf(r.bcl)}</td>`;
       } else {
         h+=extraCell(e, r);
