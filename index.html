@@ -127,7 +127,7 @@
   .rank-1 { color:#d32f2f; }          /* 第一名 红 */
   .warn { color:#c62828; font-weight:700; }  /* 库存深度预警：仅红字，底色调白 */
 
-  /* 小区汇总：达成率 / 现车锁单占比(BCL) 低于“深圳”均值 → 浅红底红字 */
+  /* 小区汇总：达成率 / 现车锁单占比(全系) 低于“深圳”均值 → 浅红底红字 */
   .below-avg { background:#ffebee !important; color:#d32f2f; font-weight:700; }
   /* 门店明细：昨日净增/昨日交付/昨日批售 第一名绿字、0值红字 */
   .d-max { color:#1b8a3a; font-weight:700; }
@@ -221,7 +221,7 @@
   <div class="legend">
     <span style="color:#1b8a3a">昨日净增/交付/批售 第一名（绿字）｜ 0值（红字）</span>
     <span style="color:#2e7d32">达成率前三（浅绿底深绿字）</span>
-    <span style="color:#c62828">达成率后三（浅红底深红字）｜ 小区汇总达成率/BCL 低于深圳均值（浅红底红字）</span>
+    <span style="color:#c62828">达成率后三（浅红底深红字）｜ 小区汇总达成率/现车锁单占比(全系) 低于深圳均值（浅红底红字）</span>
     <span style="color:#c62828">库存深度预警（&gt;1.5 红字）｜ 点击表头排序 ▲▼</span>
   </div>
 
@@ -863,7 +863,7 @@ const SECTIONS = [
 const EXTRA = [
   {f:"lockNum",  h:"锁单数", show:false, sort:"lockNum"},
   {f:"curOrder", h:"现车订单", show:false, sort:"curOrder"},
-  {f:"bcl",  h:"现车锁单<br>占比(BCL)", yellow:true, show:true, sort:"bcl"},
+  {f:"bcl",  h:"现车锁单<br>占比(全系)", yellow:true, show:true, sort:"bcl"},
   {f:"stock", h:"库存<br>深度",         yellow:true, show:true, sort:"stock"},
 ];
 
@@ -937,7 +937,7 @@ function extraCell(e, r){
   return "";
 }
 
-// 小区汇总：达成率 / 现车锁单占比(BCL) 低于“深圳”均值 → 浅红底红字
+// 小区汇总：达成率 / 现车锁单占比(全系) 低于“深圳”均值 → 浅红底红字
 function buildSummaryBody(rows){
   const total = rows.find(r=>r.level==="total");
   const bench = total ? {lock:total.lock.pct, del:total.del.pct, whl:total.whl.pct, bcl:total.bcl}
@@ -1016,7 +1016,7 @@ function buildDetailBody(rows){
 }
 
 // 门店明细汇总行：对当前显示（已按集团筛选）的门店逐列求和
-// 达成率 = 月累/目标*100；BCL = 现车订单/锁单数*100；库存深度 = 各店月累交付加权平均
+// 达成率 = 月累/目标*100；现车锁单占比(全系) = 现车订单/锁单数*100；库存深度 = 各店月累交付加权平均
 function buildDetailTotal(rows){
   const sum=(arr,fn)=>arr.reduce((a,r)=>{const v=fn(r); return (v===null||v===undefined)?a:a+v;},0);
   const agg=seg=>({ d:sum(rows,r=>r[seg].d), tgt:sum(rows,r=>r[seg].tgt), mon:sum(rows,r=>r[seg].mon) });
