@@ -73,7 +73,8 @@
     border:1px solid #e2e6ea; padding:5px 4px; text-align:center; vertical-align:middle;
     font-variant-numeric:tabular-nums;
   }
-  tbody td.name { text-align:left; padding-left:10px; font-weight:600; white-space:nowrap; }
+  tbody td.name { text-align:left; padding-left:10px; font-weight:600; white-space:nowrap;
+                  width:200px; min-width:200px; max-width:200px; overflow:hidden; text-overflow:ellipsis; }
   .col-e { font-weight:700; } /* 月累锁单 加粗（底色调白） */
   .col-w { font-weight:600; color:#1a5fb4; } /* 本周累计（周一~昨日）：蓝色加粗区分 */
   .name-north { font-weight:700; } /* 深圳北门店名（底色已删，保留加粗） */
@@ -962,7 +963,7 @@ function buildHead(rankLabel, sortable){
   let h = "<thead><tr>";
   const storeDs = sortable ? ` data-sort="store"` : "";
   const storeCls = "grp"+(sortable?" sortable":"");
-  h += `<th rowspan="2" class="${storeCls}" style="min-width:200px;"${storeDs}>门店${sortable?`<span class="sort">${arrowFor("store")}</span>`:""}</th>`;
+  h += `<th rowspan="2" class="${storeCls}" style="width:200px;min-width:200px;max-width:200px;"${storeDs}>门店${sortable?`<span class="sort">${arrowFor("store")}</span>`:""}</th>`;
   SECTIONS.forEach(s=> h += `<th colspan="${s.cols.length}" class="grp">${s.label}</th>`);
   EXTRA.forEach(e=>{ if(e.show){
     const ds = sortable&&e.sort ? ` data-sort="${e.sort}"` : "";
