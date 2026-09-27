@@ -75,6 +75,7 @@
   }
   tbody td.name { text-align:left; padding-left:10px; font-weight:600; white-space:nowrap; }
   .col-e { font-weight:700; } /* 月累锁单 加粗（底色调白） */
+  .col-w { font-weight:600; color:#1a5fb4; } /* 本周累计（周一~昨日）：蓝色加粗区分 */
   .name-north { font-weight:700; } /* 深圳北门店名（底色已删，保留加粗） */
 
   /* summary rows emphasis */
@@ -83,6 +84,7 @@
   tr.sum-area td { background:#eef8f2; font-weight:700; }
   tr.sum-region td { background:#e3f0ff; font-weight:800; border-top:2px solid #9dc3ff; }
   tr.sum-region td.col-e { background:#cfe4ff; }
+  tr.sum-total td.col-w, tr.sum-area td.col-w, tr.sum-region td.col-w, tr.sum-sub td.col-w { font-weight:700; }
   tr.sum-sub td { color:#555; }
   tr.sum-sub td.name { padding-left:24px; font-weight:500; }
   tr.sum-sub td.name::before { content:"└ "; color:#aaa; }
@@ -255,6 +257,7 @@ const REPORT_DATA = {
       tgt:10865,
       mon:7335,
       pct:67.5,
+      wd:1705,
       area:null,
     },
     del:{
@@ -262,6 +265,7 @@ const REPORT_DATA = {
       tgt:9997,
       mon:6894,
       pct:69,
+      wd:1667,
       area:null,
     },
     whl:{
@@ -269,6 +273,7 @@ const REPORT_DATA = {
       tgt:9930,
       mon:7130,
       pct:71.8,
+      wd:2007,
       area:null,
     },
     lockNum:null,
@@ -282,6 +287,7 @@ const REPORT_DATA = {
       d:50,
       tgt:1251,
       mon:806,
+      wd:184,
       pct:64.4,
       area:null,
     },
@@ -289,6 +295,7 @@ const REPORT_DATA = {
       d:15,
       tgt:1084,
       mon:705,
+      wd:161,
       pct:65,
       area:100,
     },
@@ -296,6 +303,7 @@ const REPORT_DATA = {
       d:20,
       tgt:1071,
       mon:776,
+      wd:248,
       pct:72.5,
       area:100,
     },
@@ -310,6 +318,7 @@ const REPORT_DATA = {
       d:28,
       tgt:654,
       mon:462,
+      wd:106,
       pct:70.6,
       area:57.32,
     },
@@ -317,6 +326,7 @@ const REPORT_DATA = {
       d:12,
       tgt:577,
       mon:359,
+      wd:90,
       pct:62.2,
       area:50.9,
     },
@@ -324,6 +334,7 @@ const REPORT_DATA = {
       d:14,
       tgt:579,
       mon:393,
+      wd:117,
       pct:67.9,
       area:50.6,
     },
@@ -338,6 +349,7 @@ const REPORT_DATA = {
       d:22,
       tgt:596,
       mon:344,
+      wd:78,
       pct:57.7,
       area:42.68,
     },
@@ -345,6 +357,7 @@ const REPORT_DATA = {
       d:3,
       tgt:507,
       mon:346,
+      wd:71,
       pct:68.2,
       area:49.1,
     },
@@ -352,6 +365,7 @@ const REPORT_DATA = {
       d:6,
       tgt:492,
       mon:383,
+      wd:131,
       pct:77.8,
       area:49.4,
     },
@@ -366,6 +380,7 @@ const REPORT_DATA = {
       d:11,
       tgt:306,
       mon:177,
+      wd:40,
       pct:57.8,
       area:21.96,
     },
@@ -373,6 +388,7 @@ const REPORT_DATA = {
       d:3,
       tgt:264,
       mon:150,
+      wd:29,
       pct:56.8,
       area:21.3,
     },
@@ -380,6 +396,7 @@ const REPORT_DATA = {
       d:1,
       tgt:284,
       mon:184,
+      wd:65,
       pct:64.8,
       area:23.7,
     },
@@ -394,6 +411,7 @@ const REPORT_DATA = {
       d:11,
       tgt:290,
       mon:167,
+      wd:38,
       pct:57.5,
       area:20.72,
     },
@@ -401,6 +419,7 @@ const REPORT_DATA = {
       d:0,
       tgt:243,
       mon:196,
+      wd:42,
       pct:80.7,
       area:27.8,
     },
@@ -408,6 +427,7 @@ const REPORT_DATA = {
       d:5,
       tgt:208,
       mon:199,
+      wd:66,
       pct:95.7,
       area:25.6,
     },
@@ -428,6 +448,7 @@ const REPORT_DATA = {
       tgt:71,
       mon:52,
       pct:73,
+      wd:13,
       rank:3,
     },
     del:{
@@ -435,6 +456,7 @@ const REPORT_DATA = {
       tgt:52,
       mon:37,
       pct:71.2,
+      wd:9,
       rank:6,
     },
     whl:{
@@ -442,6 +464,7 @@ const REPORT_DATA = {
       tgt:47,
       mon:45,
       pct:95.7,
+      wd:6,
       rank:2,
     },
     stock:1.59,
@@ -458,6 +481,7 @@ const REPORT_DATA = {
       tgt:97,
       mon:73,
       pct:74.8,
+      wd:17,
       rank:2,
     },
     del:{
@@ -465,6 +489,7 @@ const REPORT_DATA = {
       tgt:82,
       mon:62,
       pct:75.6,
+      wd:16,
       rank:4,
     },
     whl:{
@@ -472,6 +497,7 @@ const REPORT_DATA = {
       tgt:82,
       mon:64,
       pct:78,
+      wd:16,
       rank:6,
     },
     stock:1.2,
@@ -488,6 +514,7 @@ const REPORT_DATA = {
       tgt:97,
       mon:94,
       pct:96.1,
+      wd:25,
       rank:1,
     },
     del:{
@@ -495,6 +522,7 @@ const REPORT_DATA = {
       tgt:98,
       mon:73,
       pct:74.5,
+      wd:16,
       rank:5,
     },
     whl:{
@@ -502,6 +530,7 @@ const REPORT_DATA = {
       tgt:102,
       mon:72,
       pct:70.6,
+      wd:16,
       rank:7,
     },
     stock:1.02,
@@ -518,6 +547,7 @@ const REPORT_DATA = {
       tgt:128,
       mon:81,
       pct:62.9,
+      wd:18,
       rank:6,
     },
     del:{
@@ -525,6 +555,7 @@ const REPORT_DATA = {
       tgt:115,
       mon:64,
       pct:55.7,
+      wd:16,
       rank:10,
     },
     whl:{
@@ -532,6 +563,7 @@ const REPORT_DATA = {
       tgt:119,
       mon:82,
       pct:68.9,
+      wd:30,
       rank:8,
     },
     stock:1.37,
@@ -548,6 +580,7 @@ const REPORT_DATA = {
       tgt:134,
       mon:81,
       pct:60.2,
+      wd:18,
       rank:8,
     },
     del:{
@@ -555,6 +588,7 @@ const REPORT_DATA = {
       tgt:120,
       mon:61,
       pct:50.8,
+      wd:17,
       rank:12,
     },
     whl:{
@@ -562,6 +596,7 @@ const REPORT_DATA = {
       tgt:114,
       mon:62,
       pct:54.4,
+      wd:22,
       rank:12,
     },
     stock:1.52,
@@ -578,6 +613,7 @@ const REPORT_DATA = {
       tgt:124,
       mon:81,
       pct:64.9,
+      wd:15,
       rank:4,
     },
     del:{
@@ -585,6 +621,7 @@ const REPORT_DATA = {
       tgt:110,
       mon:62,
       pct:56.4,
+      wd:16,
       rank:9,
     },
     whl:{
@@ -592,6 +629,7 @@ const REPORT_DATA = {
       tgt:115,
       mon:68,
       pct:59.1,
+      wd:27,
       rank:10,
     },
     stock:1.19,
@@ -608,6 +646,7 @@ const REPORT_DATA = {
       tgt:10,
       mon:4,
       pct:40,
+      wd:2,
       rank:13,
     },
     del:{
@@ -615,6 +654,7 @@ const REPORT_DATA = {
       tgt:8,
       mon:2,
       pct:25,
+      wd:0,
       rank:13,
     },
     whl:{
@@ -622,6 +662,7 @@ const REPORT_DATA = {
       tgt:8,
       mon:1,
       pct:12.5,
+      wd:0,
       rank:13,
     },
     stock:1.56,
@@ -638,6 +679,7 @@ const REPORT_DATA = {
       tgt:79,
       mon:39,
       pct:49.4,
+      wd:13,
       rank:12,
     },
     del:{
@@ -645,6 +687,7 @@ const REPORT_DATA = {
       tgt:67,
       mon:38,
       pct:56.7,
+      wd:9,
       rank:8,
     },
     whl:{
@@ -652,6 +695,7 @@ const REPORT_DATA = {
       tgt:53,
       mon:42,
       pct:79.2,
+      wd:15,
       rank:5,
     },
     stock:1.37,
@@ -668,6 +712,7 @@ const REPORT_DATA = {
       tgt:60,
       mon:34,
       pct:56.7,
+      wd:11,
       rank:9,
     },
     del:{
@@ -675,6 +720,7 @@ const REPORT_DATA = {
       tgt:46,
       mon:43,
       pct:93.5,
+      wd:13,
       rank:1,
     },
     whl:{
@@ -682,6 +728,7 @@ const REPORT_DATA = {
       tgt:25,
       mon:44,
       pct:176,
+      wd:14,
       rank:1,
     },
     stock:1.62,
@@ -698,6 +745,7 @@ const REPORT_DATA = {
       tgt:76,
       mon:39,
       pct:50.9,
+      wd:10,
       rank:11,
     },
     del:{
@@ -705,6 +753,7 @@ const REPORT_DATA = {
       tgt:64,
       mon:53,
       pct:82.8,
+      wd:13,
       rank:2,
     },
     whl:{
@@ -712,6 +761,7 @@ const REPORT_DATA = {
       tgt:54,
       mon:51,
       pct:94.4,
+      wd:16,
       rank:3,
     },
     stock:1.27,
@@ -728,6 +778,7 @@ const REPORT_DATA = {
       tgt:143,
       mon:92,
       pct:64.2,
+      wd:18,
       rank:5,
     },
     del:{
@@ -735,6 +786,7 @@ const REPORT_DATA = {
       tgt:124,
       mon:72,
       pct:58.1,
+      wd:9,
       rank:7,
     },
     whl:{
@@ -742,6 +794,7 @@ const REPORT_DATA = {
       tgt:155,
       mon:98,
       pct:63.2,
+      wd:37,
       rank:9,
     },
     stock:1.46,
@@ -758,6 +811,7 @@ const REPORT_DATA = {
       tgt:143,
       mon:90,
       pct:62.6,
+      wd:15,
       rank:7,
     },
     del:{
@@ -765,6 +819,7 @@ const REPORT_DATA = {
       tgt:125,
       mon:98,
       pct:78.4,
+      wd:16,
       rank:3,
     },
     whl:{
@@ -772,6 +827,7 @@ const REPORT_DATA = {
       tgt:121,
       mon:103,
       pct:85.1,
+      wd:36,
       rank:4,
     },
     stock:1.48,
@@ -788,6 +844,7 @@ const REPORT_DATA = {
       tgt:83,
       mon:46,
       pct:54.9,
+      wd:9,
       rank:10,
     },
     del:{
@@ -795,6 +852,7 @@ const REPORT_DATA = {
       tgt:73,
       mon:40,
       pct:54.8,
+      wd:11,
       rank:11,
     },
     whl:{
@@ -802,6 +860,7 @@ const REPORT_DATA = {
       tgt:76,
       mon:44,
       pct:57.9,
+      wd:13,
       rank:11,
     },
     stock:2.02,
@@ -854,11 +913,14 @@ function render(){
 // sort: 该列排序键（仅门店明细表头可点击排序，整行数据联动重排）
 const SECTIONS = [
   {key:"lock", label:"锁单", cols:[
-    {f:"d",h:"昨日净增",sort:"lock.d"},{f:"tgt",h:"净增目标",sort:"lock.tgt"},{f:"mon",h:"月累锁单",sort:"lock.mon"},{f:"pct",h:"达成率",sort:"lock.pct"},{f:"rank",h:"__RANK__",sort:"lock.rank"}]},
+    {f:"d",h:"昨日净增",sort:"lock.d"},{f:"wd",h:"本周净增",sort:"lock.wd"},
+    {f:"tgt",h:"净增目标",sort:"lock.tgt"},{f:"mon",h:"月累锁单",sort:"lock.mon"},{f:"pct",h:"达成率",sort:"lock.pct"},{f:"rank",h:"__RANK__",sort:"lock.rank"}]},
   {key:"del",  label:"交付", cols:[
-    {f:"d",h:"昨日交付",sort:"del.d"},{f:"pct",h:"达成率",sort:"del.pct"},{f:"rank",h:"__RANK__",sort:"del.rank"}]},
+    {f:"d",h:"昨日交付",sort:"del.d"},{f:"wd",h:"本周交付",sort:"del.wd"},
+    {f:"pct",h:"达成率",sort:"del.pct"},{f:"rank",h:"__RANK__",sort:"del.rank"}]},
   {key:"whl",  label:"批售", cols:[
-    {f:"d",h:"昨日批售",sort:"whl.d"},{f:"pct",h:"达成率",sort:"whl.pct"},{f:"rank",h:"__RANK__",sort:"whl.rank"}]},
+    {f:"d",h:"昨日批售",sort:"whl.d"},{f:"wd",h:"本周批售",sort:"whl.wd"},
+    {f:"pct",h:"达成率",sort:"whl.pct"},{f:"rank",h:"__RANK__",sort:"whl.rank"}]},
 ];
 const EXTRA = [
   {f:"lockNum",  h:"锁单数", show:false, sort:"lockNum"},
@@ -921,6 +983,7 @@ function buildHead(rankLabel, sortable){
 
 function fieldCell(f, s, rankIsArea){
   if(f==="d")   return `<td>${nf(s.d)}</td>`;
+  if(f==="wd")  return `<td class="col-w">${nf(s.wd)}</td>`;
   if(f==="tgt") return `<td>${nf(s.tgt)}</td>`;
   if(f==="mon") return `<td class="col-e">${nf(s.mon)}</td>`;
   if(f==="rank")
