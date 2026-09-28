@@ -1116,7 +1116,7 @@ function buildDetailBody(rows){
 // 达成率 = 月累/目标*100；现车锁单占比(全系) = 现车订单/锁单数*100；库存深度 = 各店月累交付加权平均
 function buildDetailTotal(rows){
   const sum=(arr,fn)=>arr.reduce((a,r)=>{const v=fn(r); return (v===null||v===undefined)?a:a+v;},0);
-  const agg=seg=>({ d:sum(rows,r=>r[seg].d), tgt:sum(rows,r=>r[seg].tgt), mon:sum(rows,r=>r[seg].mon) });
+  const agg=seg=>({ d:sum(rows,r=>r[seg].d), tgt:sum(rows,r=>r[seg].tgt), mon:sum(rows,r=>r[seg].mon), wd:sum(rows,r=>r[seg].wd) });
   const L=agg("lock"), D=agg("del"), W=agg("whl");
   L.pct=L.tgt? L.mon/L.tgt*100:0; D.pct=D.tgt? D.mon/D.tgt*100:0; W.pct=W.tgt? W.mon/W.tgt*100:0;
   const lockNum=sum(rows,r=>r.lockNum), curOrder=sum(rows,r=>r.curOrder);
@@ -1132,6 +1132,7 @@ function buildDetailTotal(rows){
     const seg = s.key==="lock"?L : s.key==="del"?D : W;
     s.cols.forEach(c=>{
       if(c.f==="d")         h+=`<td>${cell(seg.d)}</td>`;
+      else if(c.f==="wd")   h+=`<td class="col-w">${nf(seg.wd)}</td>`;
       else if(c.f==="tgt")  h+=`<td>${cell(seg.tgt)}</td>`;
       else if(c.f==="mon")  h+=`<td class="col-e">${cell(seg.mon)}</td>`;
       else if(c.f==="rank") h+=`<td class="rank">汇总</td>`;
